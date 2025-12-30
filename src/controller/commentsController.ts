@@ -1,6 +1,7 @@
-const commentsModel = require('../model/commentsModel');
+import commentsModel from "../model/commentsModel";
+import { Request, Response } from "express";
 
-const createComment = async (req, res) => {
+const createComment = async (req: Request, res: Response) => {
     const commentData = req.body;
     try {
         const newComment = new commentsModel(commentData);
@@ -12,7 +13,7 @@ const createComment = async (req, res) => {
     }
 };
 
-const getCommentById = async (req, res) => {
+const getCommentById = async (req: Request, res: Response) => {
     const id = req.params.id;
     try {
         const comment = await commentsModel.findById(id);
@@ -26,8 +27,9 @@ const getCommentById = async (req, res) => {
     }
 };
 
-const getCommentsByPostId = async (req, res) => {
-    const postId = req.query.postId;
+const getCommentsByPostId = async (req: Request, res: Response) => {
+    const postIdRaw = req.query.postId;
+    const postId = Array.isArray(postIdRaw) ? postIdRaw[0] : (typeof postIdRaw === 'string' ? postIdRaw : undefined);
     try {
         const comments = await commentsModel.find({ postId: postId });
         res.status(200).json(comments);
@@ -37,7 +39,7 @@ const getCommentsByPostId = async (req, res) => {
     }
 };
 
-const updateCommentById = async (req, res) => {
+const updateCommentById = async (req: Request, res: Response) => {
     const id = req.params.id;
     const updateData = req.body;
     try {
@@ -52,7 +54,7 @@ const updateCommentById = async (req, res) => {
     }
 };
 
-const deleteCommentById = async (req, res) => {
+const deleteCommentById = async (req: Request, res: Response) => {
     const id = req.params.id;
     try {
         const deletedComment = await commentsModel.findByIdAndDelete(id);
@@ -66,6 +68,10 @@ const deleteCommentById = async (req, res) => {
     }
 };
 
-module.exports = { createComment, getCommentById, getCommentsByPostId, updateCommentById, deleteCommentById };
-
-
+export default {
+    createComment,
+    getCommentById,
+    getCommentsByPostId,
+    updateCommentById,
+    deleteCommentById
+};

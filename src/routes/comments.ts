@@ -1,6 +1,7 @@
-const express = require('express');
+import express from "express"
+import commentsController from "../controller/commentsController";
+
 const router = express.Router();
-const commentsController = require('../controller/commentsController');
 
 router.route('/')
     .post(commentsController.createComment)
@@ -11,4 +12,4 @@ router.route('/:id')
     .put(commentsController.updateCommentById)
     .delete(commentsController.deleteCommentById);
 
-module.exports = router;
+export default router;
