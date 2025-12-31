@@ -9,7 +9,8 @@
     "test": "tsc && jest --runInBand --detectOpenHandles --forceExit",
     "testPosts": "tsc && jest --runInBand --detectOpenHandles --forceExit ./src/tests/posts.test.ts",
     "testComments": "tsc && jest --runInBand --detectOpenHandles --forceExit ./src/tests/comments.test.ts",
-    "testAuth": "tsc && jest --runInBand --detectOpenHandles --forceExit ./src/tests/auth.test.ts"
+    "testAuth": "tsc && jest --runInBand --detectOpenHandles --forceExit ./src/tests/auth.test.ts",
+    "testUsers": "tsc && jest --runInBand --detectOpenHandles --forceExit ./src/tests/users.test.ts"
   },
   "keywords": [],
   "author": "",
