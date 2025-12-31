@@ -35,7 +35,9 @@ describe("Posts API Tests", () => {
     }));
     test("Create Post", () => __awaiter(void 0, void 0, void 0, function* () {
         for (const post of utils_1.postsList) {
-            const response = yield (0, supertest_1.default)(app).post("/posts").send(post);
+            const response = yield (0, supertest_1.default)(app).post("/posts")
+                //.set("Authorization", "Bearer " + loggedInUser.token)
+                .send(post);
             expect(response.status).toBe(201);
             expect(response.body.title).toBe(post.title);
             expect(response.body.content).toBe(post.content);

@@ -27,7 +27,9 @@ describe("Posts API Tests", () => {
 
   test("Create Post", async () => {
     for (const post of postsList) {
-      const response = await request(app).post("/posts").send(post);
+      const response = await request(app).post("/posts")
+      //.set("Authorization", "Bearer " + loggedInUser.token)
+      .send(post);
       expect(response.status).toBe(201);
       expect(response.body.title).toBe(post.title);
       expect(response.body.content).toBe(post.content);
@@ -54,6 +56,7 @@ describe("Posts API Tests", () => {
     postsList[0].content = "Updated Content";
     const response = await request(app)
       .put("/posts/" + postId)
+      // .set("Authorization", "Bearer " + loggedInUser.token)
       .send(postsList[0]);
     expect(response.status).toBe(200);
     expect(response.body.title).toBe(postsList[0].title);

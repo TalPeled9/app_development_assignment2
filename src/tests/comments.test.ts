@@ -28,7 +28,9 @@ describe("Comments API Tests", () => {
 
   test("Create Comment", async () => {
     for (const comment of commentsList) {
-      const response = await request(app).post("/comments").send(comment);
+      const response = await request(app).post("/comments")
+      // .set("Authorization", "Bearer " + loggedInUser.token)
+      .send(comment);
       expect(response.status).toBe(201);
       expect(response.body.postId).toBe(comment.postId);
       expect(response.body.author).toBe(comment.author);
@@ -58,13 +60,16 @@ describe("Comments API Tests", () => {
     commentsByPostId[0].content = "Updated Content";
     const response = await request(app)
       .put("/comments/" + commentId)
+      // .set("Authorization", "Bearer " + loggedInUser.token)
       .send(commentsByPostId[0]);
     expect(response.status).toBe(200);
     expect(response.body.content).toBe(commentsByPostId[0].content);
   });
 
   test("Delete Comment", async () => {
-    const response = await request(app).delete("/comments/" + commentId);
+    const response = await request(app).delete("/comments/" + commentId)
+    // .set("Authorization", "Bearer " + loggedInUser.token)
+    ;
     expect(response.status).toBe(200);
     expect(response.body._id).toBe(commentId);
 
