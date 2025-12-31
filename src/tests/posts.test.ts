@@ -2,7 +2,7 @@ import request from "supertest";
 import initApp from "../app";
 import postsModel from "../model/postsModel";
 import { Express } from "express";
-import { postsList, PostsData } from "./utils";
+import { postsList } from "./utils";
 
 let app: Express;
 let postId = "";
