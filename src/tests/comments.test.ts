@@ -2,17 +2,17 @@ import request from "supertest";
 import initApp from "../app";
 import commentsModel from "../model/commentsModel";
 import { Express } from "express";
-import { commentsList, CommentsData } from "./utils";
+import { commentsList, CommentsData, UserData, getLogedInUser } from "./utils";
 
 let app: Express;
 let commentId = "";
 let commentsByPostId: CommentsData[];
-// let loginuser: UserData;
+let loggedInUser : UserData;
 
 beforeAll(async () => {
   app = await initApp();
   await commentsModel.deleteMany();
-  // get logged in user if necessary
+  // loggedInUser = await getLogedInUser(app);
 });
 
 afterAll((done) => {

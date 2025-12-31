@@ -2,16 +2,16 @@ import request from "supertest";
 import initApp from "../app";
 import postsModel from "../model/postsModel";
 import { Express } from "express";
-import { postsList } from "./utils";
+import { postsList, UserData, getLogedInUser } from "./utils";
 
 let app: Express;
 let postId = "";
-// let loginuser: UserData;
+let loggedInUser : UserData;
 
 beforeAll(async () => {
   app = await initApp();
   await postsModel.deleteMany();
-  // get logged in user if necessary
+  // loggedInUser = await getLogedInUser(app);
 });
 
 afterAll((done) => {

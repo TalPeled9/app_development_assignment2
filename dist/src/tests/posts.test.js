@@ -18,11 +18,11 @@ const postsModel_1 = __importDefault(require("../model/postsModel"));
 const utils_1 = require("./utils");
 let app;
 let postId = "";
-// let loginuser: UserData;
+let loggedInUser;
 beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     app = yield (0, app_1.default)();
     yield postsModel_1.default.deleteMany();
-    // get logged in user if necessary
+    // loggedInUser = await getLogedInUser(app);
 }));
 afterAll((done) => {
     done();
