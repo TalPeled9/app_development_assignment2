@@ -1,13 +1,23 @@
 //import request from "supertest";
 //import { Express } from "express";
 
-export type PostsData = { title: string, content: string, sender?: string };
+export type PostsData = { title: string, content: string, sender: string, _id?: string };
+
+export type CommentsData = { postId: string, author: string, content: string, createdAt?: Date, _id?: string };
 
 export const postsList: PostsData[] = [
     { title: "First Post", content: "This is the content of the first post.", sender: "user1" },
     { title: "Second Post", content: "This is the content of the second post.", sender: "user2" },
     { title: "Third Post", content: "This is the content of the third post.", sender: "user3" }
 ];
+
+export const commentsList: CommentsData[] = [
+    { postId: "000000000000000000000001", author: "commenter1", content: "This is the first comment." },
+    { postId: "000000000000000000000001", author: "commenter2", content: "This is the second comment." },
+    { postId: "000000000000000000000002", author: "commenter3", content: "This is the third comment." }
+];
+
+
 
 // export type UserData = {
 //     email: string,

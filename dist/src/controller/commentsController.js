@@ -73,7 +73,7 @@ const deleteCommentById = (req, res) => __awaiter(void 0, void 0, void 0, functi
         if (!deletedComment) {
             return res.status(404).json("Comment not found");
         }
-        res.status(200).json("Comment deleted successfully");
+        res.status(200).json(deletedComment);
     }
     catch (error) {
         console.error(error);

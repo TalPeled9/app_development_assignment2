@@ -2,11 +2,16 @@
 //import request from "supertest";
 //import { Express } from "express";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.postsList = void 0;
+exports.commentsList = exports.postsList = void 0;
 exports.postsList = [
     { title: "First Post", content: "This is the content of the first post.", sender: "user1" },
     { title: "Second Post", content: "This is the content of the second post.", sender: "user2" },
     { title: "Third Post", content: "This is the content of the third post.", sender: "user3" }
+];
+exports.commentsList = [
+    { postId: "000000000000000000000001", author: "commenter1", content: "This is the first comment." },
+    { postId: "000000000000000000000001", author: "commenter2", content: "This is the second comment." },
+    { postId: "000000000000000000000002", author: "commenter3", content: "This is the third comment." }
 ];
 // export type UserData = {
 //     email: string,

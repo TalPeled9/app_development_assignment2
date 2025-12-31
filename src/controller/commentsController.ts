@@ -61,7 +61,7 @@ const deleteCommentById = async (req: Request, res: Response) => {
         if (!deletedComment) {
             return res.status(404).json("Comment not found");
         }
-        res.status(200).json("Comment deleted successfully");
+        res.status(200).json(deletedComment);
     } catch (error) {
         console.error(error);
         res.status(500).json("Error deleting comment");
