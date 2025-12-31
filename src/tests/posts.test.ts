@@ -5,22 +5,67 @@ import { Express } from "express";
 import { postsList, PostsData } from "./utils";
 
 let app: Express;
+let postId = "";
+// let loginuser: UserData;
 
 beforeAll(async () => {
-    app = await initApp();
-    await postsModel.deleteMany();
-    // get logged in user if necessary
+  app = await initApp();
+  await postsModel.deleteMany();
+  // get logged in user if necessary
 });
 
 afterAll((done) => {
-    done();
+  done();
 });
 
-describe("Posts API", () => {
-    test("Sample Test Case", async () => {
-        const response = await request(app).get("/posts");
-        expect(response.status).toBe(200);
-        expect(response.body).toEqual([]);
+describe("Posts API Tests", () => {
+  test("Sample Test Case", async () => {
+    const response = await request(app).get("/posts");
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
   });
 
+  test("Create Post", async () => {
+    for (const post of postsList) {
+      const response = await request(app).post("/posts").send(post);
+      expect(response.status).toBe(201);
+      expect(response.body.title).toBe(post.title);
+      expect(response.body.content).toBe(post.content);
+    }
+  });
+
+  test("Get All Posts", async () => {
+    const response = await request(app).get("/posts");
+    expect(response.status).toBe(200);
+    expect(response.body.length).toBe(postsList.length);
+    postId = response.body[0]._id; // Save the ID of the first post for later tests
+  });
+
+  test("Get Post by ID", async () => {
+    const response = await request(app).get("/posts/" + postId);
+    expect(response.status).toBe(200);
+    expect(response.body.title).toBe(postsList[0].title);
+    expect(response.body.content).toBe(postsList[0].content);
+    expect(response.body._id).toBe(postId);
+  });
+
+  test("Update Post", async () => {
+    postsList[0].title = "Updated Title";
+    postsList[0].content = "Updated Content";
+    const response = await request(app)
+      .put("/posts/" + postId)
+      .send(postsList[0]);
+    expect(response.status).toBe(200);
+    expect(response.body.title).toBe(postsList[0].title);
+    expect(response.body.content).toBe(postsList[0].content);
+  });
+
+//   test("Delete Post", async () => {
+//     const response = await request(app).delete("/posts/" + postId);
+//     expect(response.status).toBe(200);
+//     expect(response.body._id).toBe(postId);
+
+//     const getResponse = await request(app).get("/posts/" + postId);
+//     expect(getResponse.status).toBe(404);
+//   });
 });

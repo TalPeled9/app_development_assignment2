@@ -4,9 +4,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.postsList = void 0;
 exports.postsList = [
-    { title: "First Post", content: "This is the content of the first post." },
-    { title: "Second Post", content: "This is the content of the second post." },
-    { title: "Third Post", content: "This is the content of the third post." }
+    { title: "First Post", content: "This is the content of the first post.", sender: "user1" },
+    { title: "Second Post", content: "This is the content of the second post.", sender: "user2" },
+    { title: "Third Post", content: "This is the content of the third post.", sender: "user3" }
 ];
 // export type UserData = {
 //     email: string,
