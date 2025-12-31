@@ -1,5 +1,5 @@
-//import request from "supertest";
-//import { Express } from "express";
+import request from "supertest";
+import { Express } from "express";
 
 export type PostsData = {
     title: string,
@@ -46,22 +46,24 @@ export const testUser: UserData = {
     refreshToken: ""
 };
 
-// export const getLogedInUser = async (app: Express): Promise<UserData> => {
-//     const email = userData.email;
-//     const password = userData.password;
-//     let response = await request(app).post("/auth/register").send(
-//         { "email": email, "password": password }
-//     );
-//     if (response.status !== 201) {
-//         response = await request(app).post("/auth/login").send(
-//             { "email": email, "password": password });
-//     }
-//     const logedUser = {
-//         _id: response.body._id,
-//         token: response.body.token,
-//         refreshToken: response.body.refreshToken,
-//         email: email,
-//         password: password
-//     };
-//     return logedUser;
-// }
+    export const getLogedInUser = async (app: Express): Promise<UserData> => {
+    const username = testUser.username;
+    const email = testUser.email;
+    const password = testUser.password;
+    let response = await request(app).post("/auth/register").send(
+        { "username": username, "email": email, "password": password }
+    );
+    if (response.status !== 201) {
+        response = await request(app).post("/auth/login").send(
+            { "email": email, "password": password });
+    }
+    const logedUser = {
+        _id: response.body._id,
+        token: response.body.token,
+        refreshToken: response.body.refreshToken,
+        email: email,
+        password: password,
+        username: username
+    };
+    return logedUser;
+}
