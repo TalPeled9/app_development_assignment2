@@ -6,12 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const index_1 = __importDefault(require("./routes/index"));
-//import connectDB from "./db/database";
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config({ path: ".env.dev" });
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
-//connectDB();
 app.use("/", index_1.default);
 const initApp = () => {
     const pr = new Promise((resolve, reject) => {

@@ -1,11 +1,16 @@
 {
-  "name": "backend",
+  "name": "app_development_assignment2",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "tsc && node --env-file=.env.dev ./dist/app.js",
-    "dev": "nodemon ./src/app.ts"
+    "dev": "nodemon ./src/app.ts",
+    "test": "tsc && jest --runInBand --detectOpenHandles --forceExit",
+    "testPosts": "tsc && jest --runInBand --detectOpenHandles --forceExit ./src/tests/posts.test.ts",
+    "testComments": "tsc && jest --runInBand --detectOpenHandles --forceExit ./src/tests/comments.test.ts",
+    "testAuth": "tsc && jest --runInBand --detectOpenHandles --forceExit ./src/tests/auth.test.ts",
+    "testUsers": "tsc && jest --runInBand --detectOpenHandles --forceExit ./src/tests/users.test.ts"
   },
   "keywords": [],
   "author": "",
@@ -21,8 +26,11 @@
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.0.3",
+    "@types/supertest": "^6.0.3",
     "eslint": "^9.39.2",
     "globals": "^16.5.0",
+    "jest": "^30.2.0",
+    "supertest": "^7.1.4",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
