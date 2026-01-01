@@ -3,7 +3,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../model/userModel";
 
-// Helper function to generate tokens
 const generateTokens = (userId: string) => {
   const jwtSecret = process.env.JWT_SECRET;
   const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
@@ -13,28 +12,25 @@ const generateTokens = (userId: string) => {
   }
 
   const accessToken = jwt.sign({ _id: userId }, jwtSecret, {
-    expiresIn: "5s", // 5 seconds for testing
+    expiresIn: "5s",
   });
 
   const refreshToken = jwt.sign({ _id: userId }, jwtRefreshSecret, {
-    expiresIn: "7d", // 7 days
+    expiresIn: "7d",
   });
 
   return { accessToken, refreshToken };
 };
 
-// Register endpoint
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, email, password, profilePicture } = req.body;
 
-    // Validate required fields
     if (!username || !email || !password) {
       res.status(400).json({ message: "Missing required fields" });
       return;
     }
 
-    // Check if user already exists
     const existingUser = await User.findOne({
       $or: [{ email }, { username }],
     });
@@ -44,10 +40,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = new User({
       username,
       email,
@@ -58,10 +52,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     const savedUser = await user.save();
 
-    // Generate tokens with actual user ID
     const { accessToken, refreshToken } = generateTokens(savedUser._id.toString());
 
-    // Update user with refresh token
     savedUser.refreshTokens = [refreshToken];
     await savedUser.save();
 
@@ -77,18 +69,15 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Login endpoint
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 
-    // Validate required fields
     if (!email || !password) {
       res.status(400).json({ message: "Missing required fields" });
       return;
     }
 
-    // Find user by email
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -96,7 +85,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
@@ -104,10 +92,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Generate new tokens
     const { accessToken, refreshToken } = generateTokens(user._id.toString());
 
-    // Add new refresh token to user's tokens array
     user.refreshTokens.push(refreshToken);
     await user.save();
 
@@ -123,7 +109,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Refresh token endpoint
 export const refresh = async (req: Request, res: Response): Promise<void> => {
   try {
     const { refreshToken } = req.body;
@@ -139,7 +124,6 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Verify refresh token
     let decoded;
     try {
       decoded = jwt.verify(refreshToken, jwtRefreshSecret) as { _id: string };
@@ -148,7 +132,6 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Find user
     const user = await User.findById(decoded._id);
 
     if (!user) {
@@ -156,22 +139,18 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Check if refresh token exists in user's tokens array
     const tokenIndex = user.refreshTokens.indexOf(refreshToken);
 
     if (tokenIndex === -1) {
-      // Token not found - possibly already used (security breach)
       res.status(401).json({ message: "Invalid refresh token" });
       return;
     }
 
-    // Generate new tokens
     const {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
     } = generateTokens(user._id.toString());
 
-    // Remove old refresh token and add new one (token rotation)
     user.refreshTokens.splice(tokenIndex, 1);
     user.refreshTokens.push(newRefreshToken);
     await user.save();
