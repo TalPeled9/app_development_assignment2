@@ -86,7 +86,6 @@ describe("Authentication API Tests", () => {
     const refreshResponse = await request(app).post("/auth/refresh").send(
       { "refreshToken": testUser.refreshToken }
     );
-    console.log("Refresh response body:", refreshResponse.body);
     expect(refreshResponse.status).toBe(200);
     expect(refreshResponse.body).toHaveProperty("token");
     testUser.token = refreshResponse.body.token;

@@ -52,15 +52,17 @@ describe("Posts API Tests", () => {
   });
 
   test("Update Post", async () => {
-    postsList[0].title = "Updated Title";
-    postsList[0].content = "Updated Content";
+    const updatedPost = {
+      title: "Updated Title",
+      content: "Updated Content"
+    };
     const response = await request(app)
       .put("/posts/" + postId)
-      // .set("Authorization", "Bearer " + loggedInUser.token)
-      .send(postsList[0]);
+      .set("Authorization", "Bearer " + loggedInUser.token)
+      .send(updatedPost);
     expect(response.status).toBe(200);
-    expect(response.body.title).toBe(postsList[0].title);
-    expect(response.body.content).toBe(postsList[0].content);
+    expect(response.body.title).toBe(updatedPost.title);
+    expect(response.body.content).toBe(updatedPost.content);
   });
 
 //   test("Delete Post", async () => {

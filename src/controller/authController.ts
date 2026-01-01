@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import User from "../model/userModel";
 
 const generateTokens = (userId: string) => {
@@ -11,11 +12,14 @@ const generateTokens = (userId: string) => {
     throw new Error("JWT secrets not configured");
   }
 
-  const accessToken = jwt.sign({ _id: userId }, jwtSecret, {
+  // Add a random component to ensure tokens are unique even when generated at the same second
+  const random = crypto.randomBytes(16).toString("hex");
+
+  const accessToken = jwt.sign({ _id: userId, random }, jwtSecret, {
     expiresIn: "5s",
   });
 
-  const refreshToken = jwt.sign({ _id: userId }, jwtRefreshSecret, {
+  const refreshToken = jwt.sign({ _id: userId, random }, jwtRefreshSecret, {
     expiresIn: "7d",
   });
 
@@ -132,20 +136,14 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const user = await User.findById(decoded._id);
+    const user = await User.findOneAndUpdate(
+      { _id: decoded._id, refreshTokens: refreshToken },
+      { $pull: { refreshTokens: refreshToken } },
+      { new: false }
+    );
 
     if (!user) {
-      res.status(401).json({ message: "User not found" });
-      return;
-    }
-
-    const tokenIndex = user.refreshTokens.indexOf(refreshToken);
-
-    if (tokenIndex === -1) {
-      // Token not found - possibly reused (security breach)
-      // Invalidate ALL refresh tokens for this user
-      user.refreshTokens = [];
-      await user.save();
+      await User.findByIdAndUpdate(decoded._id, { refreshTokens: [] });
       res.status(401).json({ message: "Invalid refresh token" });
       return;
     }
@@ -155,9 +153,9 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
       refreshToken: newRefreshToken,
     } = generateTokens(user._id.toString());
 
-    user.refreshTokens.splice(tokenIndex, 1);
-    user.refreshTokens.push(newRefreshToken);
-    await user.save();
+    await User.findByIdAndUpdate(user._id, {
+      $push: { refreshTokens: newRefreshToken },
+    });
 
     res.status(200).json({
       token: newAccessToken,
@@ -165,5 +163,46 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     res.status(500).json({ message: "Error refreshing token", error });
+  }
+};
+
+export const logout = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      res.status(400).json({ message: "Refresh token required" });
+      return;
+    }
+
+    const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+    if (!jwtRefreshSecret) {
+      res.status(500).json({ message: "JWT refresh secret not configured" });
+      return;
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, jwtRefreshSecret) as { _id: string };
+    } catch (error) {
+      res.status(401).json({ message: "Invalid or expired refresh token", error });
+      return;
+    }
+
+    const user = await User.findById(decoded._id);
+    if (!user) {
+      res.status(401).json({ message: "User not found" });
+      return;
+    }
+
+    // Remove the refresh token
+    user.refreshTokens = user.refreshTokens.filter(
+      (token) => token !== refreshToken
+    );
+    await user.save();
+
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error logging out", error });
   }
 };
