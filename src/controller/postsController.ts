@@ -1,6 +1,7 @@
-const postsModel = require('../model/postsModel');
+import postsModel from "../model/postsModel";
+import { Request, Response } from "express";
 
-const createPost = async (req, res) => {
+const createPost = async (req: Request, res: Response) => {
     const postData = req.body;
     try {
         const newPost = new postsModel(postData);
@@ -12,11 +13,12 @@ const createPost = async (req, res) => {
     }
 };
 
-const getAllPosts = async (req, res) => {
-    const sender = req.query.sender;
+const getAllPosts = async (req: Request, res: Response) => {
+    const senderRaw = req.query.sender;
+    const sender = Array.isArray(senderRaw) ? senderRaw[0] : (typeof senderRaw === 'string' ? senderRaw : undefined);
     try {
-        if (sender) {
-            const posts = await postsModel.find({ sender: sender });
+        if (sender !== undefined) {
+            const posts = await postsModel.find({ sender });
             res.status(200).json(posts);
         } else {
             const posts = await postsModel.find();
@@ -28,7 +30,7 @@ const getAllPosts = async (req, res) => {
     }
 };
 
-const getPostById = async (req, res) => {
+const getPostById = async (req: Request, res: Response) => {
     const id = req.params.id;
     try {
         const post = await postsModel.findById(id);
@@ -42,7 +44,7 @@ const getPostById = async (req, res) => {
     }
 };
 
-const updatePostById = async (req, res) => {
+const updatePostById = async (req: Request, res: Response) => {
     const id = req.params.id;
     const updateData = req.body;
     try {
@@ -57,4 +59,9 @@ const updatePostById = async (req, res) => {
     }
 };
 
-module.exports = { createPost, getAllPosts, getPostById, updatePostById };
+export default {
+    createPost,
+    getAllPosts,
+    getPostById,
+    updatePostById
+};
