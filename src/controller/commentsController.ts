@@ -1,10 +1,20 @@
 import commentsModel from "../model/commentsModel";
-import { Request, Response } from "express";
+import { Response } from "express";
+import { AuthRequest } from "../middleware/authMiddleware";
 
-const createComment = async (req: Request, res: Response) => {
-    const commentData = req.body;
+const createComment = async (req: AuthRequest, res: Response) => {
     try {
-        const newComment = new commentsModel(commentData);
+        const { postId, content } = req.body;
+
+        if (!req.userId) {
+            return res.status(401).json("Unauthorized");
+        }
+
+        const newComment = new commentsModel({
+            postId,
+            content,
+            author: req.userId
+        });
         await newComment.save();
         res.status(201).json(newComment);
     } catch (error) {
@@ -13,7 +23,7 @@ const createComment = async (req: Request, res: Response) => {
     }
 };
 
-const getCommentById = async (req: Request, res: Response) => {
+const getCommentById = async (req: AuthRequest, res: Response) => {
     const id = req.params.id;
     try {
         const comment = await commentsModel.findById(id);
@@ -27,7 +37,7 @@ const getCommentById = async (req: Request, res: Response) => {
     }
 };
 
-const getCommentsByPostId = async (req: Request, res: Response) => {
+const getCommentsByPostId = async (req: AuthRequest, res: Response) => {
     const postIdRaw = req.query.postId;
     const postId = Array.isArray(postIdRaw) ? postIdRaw[0] : (typeof postIdRaw === 'string' ? postIdRaw : undefined);
     try {
@@ -39,7 +49,7 @@ const getCommentsByPostId = async (req: Request, res: Response) => {
     }
 };
 
-const updateCommentById = async (req: Request, res: Response) => {
+const updateCommentById = async (req: AuthRequest, res: Response) => {
     const id = req.params.id;
     const updateData = req.body;
     try {
@@ -54,7 +64,7 @@ const updateCommentById = async (req: Request, res: Response) => {
     }
 };
 
-const deleteCommentById = async (req: Request, res: Response) => {
+const deleteCommentById = async (req: AuthRequest, res: Response) => {
     const id = req.params.id;
     try {
         const deletedComment = await commentsModel.findByIdAndDelete(id);

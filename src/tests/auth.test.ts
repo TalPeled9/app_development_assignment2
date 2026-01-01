@@ -1,14 +1,14 @@
 import request from "supertest";
 import initApp from "../app";
 import { Express } from "express";
-//import User from "../model/userModel";
+import User from "../model/userModel";
 import { testUser, postsList } from "./utils"
 
 let app: Express;
 
 beforeAll(async () => {
   app = await initApp();
-  //await User.deleteMany();
+  await User.deleteMany();
 });
 
 afterAll((done) => {
@@ -18,7 +18,7 @@ afterAll((done) => {
 describe("Authentication API Tests", () => {
   test("Test posting a post without token fails", async () => {
     const postData = postsList[0];
-    const response = await request(app).post("/post").send(postData);
+    const response = await request(app).post("/posts").send(postData);
     expect(response.status).toBe(401);
   });
 
@@ -41,7 +41,7 @@ describe("Authentication API Tests", () => {
   test("Posting a post with token succeeds", async () => {
     const postData = postsList[0];
     const response = await request(app)
-      .post("/post")
+      .post("/posts")
       .set("Authorization", "Bearer " + testUser.token)
       .send(postData);
     expect(response.status).toBe(201);
@@ -51,7 +51,7 @@ describe("Authentication API Tests", () => {
     const postData = postsList[0];
     const compromizedToken = testUser.token + "a";
     const response = await request(app)
-      .post("/post")
+      .post("/posts")
       .set("Authorization", "Bearer " + compromizedToken)
       .send(postData);
     expect(response.status).toBe(401);
@@ -77,7 +77,7 @@ describe("Authentication API Tests", () => {
     await new Promise((r) => setTimeout(r, 5000));
     const postData = postsList[0];
     const response = await request(app)
-      .post("/post")
+      .post("/posts")
       .set("Authorization", "Bearer " + testUser.token)
       .send(postData);
     expect(response.status).toBe(401);
@@ -94,7 +94,7 @@ describe("Authentication API Tests", () => {
 
     //try to create movie again
     const retryResponse = await request(app)
-      .post("/post")
+      .post("/posts")
       .set("Authorization", "Bearer " + testUser.token)
       .send(postData);
     expect(retryResponse.status).toBe(201);

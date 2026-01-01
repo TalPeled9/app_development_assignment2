@@ -142,6 +142,10 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
     const tokenIndex = user.refreshTokens.indexOf(refreshToken);
 
     if (tokenIndex === -1) {
+      // Token not found - possibly reused (security breach)
+      // Invalidate ALL refresh tokens for this user
+      user.refreshTokens = [];
+      await user.save();
       res.status(401).json({ message: "Invalid refresh token" });
       return;
     }

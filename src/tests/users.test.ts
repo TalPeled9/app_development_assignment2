@@ -1,7 +1,7 @@
 import request from "supertest";
 import initApp from "../app";
 import { Express } from "express";
-// import User from "../model/userModel";
+import User from "../model/userModel";
 import { usersList } from "./utils"
 
 let app: Express;
@@ -9,7 +9,7 @@ let userId = "";
 
 beforeAll(async () => {
   app = await initApp();
-  // await User.deleteMany();
+  await User.deleteMany();
 });
 
 afterAll((done) => done());

@@ -1,10 +1,11 @@
 import express from "express"
-import commentsController from "../controller/commentsController";  
+import commentsController from "../controller/commentsController";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
 router.route('/')
-    .post(commentsController.createComment)
+    .post(authMiddleware, commentsController.createComment)
     .get(commentsController.getCommentsByPostId);
 
 router.route('/:id')

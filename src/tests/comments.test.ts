@@ -12,7 +12,7 @@ let loggedInUser : UserData;
 beforeAll(async () => {
   app = await initApp();
   await commentsModel.deleteMany();
-  // loggedInUser = await getLogedInUser(app);
+  loggedInUser = await getLogedInUser(app);
 });
 
 afterAll((done) => {
@@ -29,7 +29,7 @@ describe("Comments API Tests", () => {
   test("Create Comment", async () => {
     for (const comment of commentsList) {
       const response = await request(app).post("/comments")
-      // .set("Authorization", "Bearer " + loggedInUser.token)
+      .set("Authorization", "Bearer " + loggedInUser.token)
       .send(comment);
       expect(response.status).toBe(201);
       expect(response.body.postId).toBe(comment.postId);
