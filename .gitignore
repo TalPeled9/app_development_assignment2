@@ -1,6 +1,5 @@
 node_modules
 .env
 .env.dev
-#all generated folder and contents
 dist
 dist/src
