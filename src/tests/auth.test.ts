@@ -121,4 +121,29 @@ describe("Authentication API Tests", () => {
     );
     expect(refreshResponse3.status).toBe(401);
   });
+
+  test("Test logout", async () => {
+    // Register a new user to get fresh tokens
+    const newUser = {
+      username: "logoutTestUser",
+      email: "logout@test.com",
+      password: "password123"
+    };
+    const registerResponse = await request(app).post("/auth/register").send(newUser);
+    expect(registerResponse.status).toBe(201);
+    const refreshToken = registerResponse.body.refreshToken;
+
+    // Logout with the refresh token
+    const logoutResponse = await request(app).post("/auth/logout").send(
+      { "refreshToken": refreshToken }
+    );
+    expect(logoutResponse.status).toBe(200);
+    expect(logoutResponse.body).toHaveProperty("message", "Logged out successfully");
+
+    // Try to use the refresh token after logout - should fail
+    const refreshResponse = await request(app).post("/auth/refresh").send(
+      { "refreshToken": refreshToken }
+    );
+    expect(refreshResponse.status).toBe(401);
+  });
 });

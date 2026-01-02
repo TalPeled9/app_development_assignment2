@@ -12,14 +12,14 @@ const generateTokens = (userId: string) => {
     throw new Error("JWT secrets not configured");
   }
 
-  // Add a random component to ensure tokens are unique even when generated at the same second
-  const random = crypto.randomBytes(16).toString("hex");
+  // Add a JWT ID (jti) to ensure tokens are unique even when generated at the same second
+  const jti = crypto.randomBytes(16).toString("hex");
 
-  const accessToken = jwt.sign({ _id: userId, random }, jwtSecret, {
+  const accessToken = jwt.sign({ _id: userId, jti }, jwtSecret, {
     expiresIn: "5s",
   });
 
-  const refreshToken = jwt.sign({ _id: userId, random }, jwtRefreshSecret, {
+  const refreshToken = jwt.sign({ _id: userId, jti }, jwtRefreshSecret, {
     expiresIn: "7d",
   });
 
