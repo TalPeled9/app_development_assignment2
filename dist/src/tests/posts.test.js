@@ -61,6 +61,7 @@ describe("Posts API Tests", () => {
         utils_1.postsList[0].content = "Updated Content";
         const response = yield (0, supertest_1.default)(app)
             .put("/posts/" + postId)
+            // .set("Authorization", "Bearer " + loggedInUser.token)
             .send(utils_1.postsList[0]);
         expect(response.status).toBe(200);
         expect(response.body.title).toBe(utils_1.postsList[0].title);

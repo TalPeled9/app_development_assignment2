@@ -36,7 +36,9 @@ describe("Comments API Tests", () => {
     }));
     test("Create Comment", () => __awaiter(void 0, void 0, void 0, function* () {
         for (const comment of utils_1.commentsList) {
-            const response = yield (0, supertest_1.default)(app).post("/comments").send(comment);
+            const response = yield (0, supertest_1.default)(app).post("/comments")
+                // .set("Authorization", "Bearer " + loggedInUser.token)
+                .send(comment);
             expect(response.status).toBe(201);
             expect(response.body.postId).toBe(comment.postId);
             expect(response.body.author).toBe(comment.author);
@@ -62,6 +64,7 @@ describe("Comments API Tests", () => {
         commentsByPostId[0].content = "Updated Content";
         const response = yield (0, supertest_1.default)(app)
             .put("/comments/" + commentId)
+            // .set("Authorization", "Bearer " + loggedInUser.token)
             .send(commentsByPostId[0]);
         expect(response.status).toBe(200);
         expect(response.body.content).toBe(commentsByPostId[0].content);

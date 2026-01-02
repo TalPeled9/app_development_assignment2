@@ -12,33 +12,80 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getLogedInUser = exports.testUser = exports.commentsList = exports.postsList = void 0;
+exports.getLogedInUser = exports.testUser = exports.usersList = exports.commentsList = exports.postsList = void 0;
 const supertest_1 = __importDefault(require("supertest"));
 exports.postsList = [
-    { title: "First Post", content: "This is the content of the first post.", sender: "user1" },
-    { title: "Second Post", content: "This is the content of the second post.", sender: "user2" },
-    { title: "Third Post", content: "This is the content of the third post.", sender: "user3" }
+    {
+        title: "First Post",
+        content: "This is the content of the first post.",
+        sender: "user1",
+    },
+    {
+        title: "Second Post",
+        content: "This is the content of the second post.",
+        sender: "user2",
+    },
+    {
+        title: "Third Post",
+        content: "This is the content of the third post.",
+        sender: "user3",
+    },
 ];
 exports.commentsList = [
-    { postId: "000000000000000000000001", author: "commenter1", content: "This is the first comment." },
-    { postId: "000000000000000000000001", author: "commenter2", content: "This is the second comment." },
-    { postId: "000000000000000000000002", author: "commenter3", content: "This is the third comment." }
+    {
+        postId: "000000000000000000000001",
+        author: "commenter1",
+        content: "This is the first comment.",
+    },
+    {
+        postId: "000000000000000000000001",
+        author: "commenter2",
+        content: "This is the second comment.",
+    },
+    {
+        postId: "000000000000000000000002",
+        author: "commenter3",
+        content: "This is the third comment.",
+    },
 ];
-exports.testUser = {
-    username: "testuser",
-    email: "test@test.com",
-    password: "testpass",
-    _id: "",
-    token: "",
-    refreshToken: ""
-};
+exports.usersList = [
+    {
+        username: "testuser",
+        email: "test@test.com",
+        password: "testpass",
+        _id: "",
+        token: "",
+        refreshToken: "",
+    },
+    {
+        username: "user1",
+        email: "user1@example.com",
+        password: "Passw0rd1",
+        _id: "",
+        token: "",
+        refreshToken: "",
+    },
+    {
+        username: "user2",
+        email: "user2@example.com",
+        password: "Passw0rd2",
+        _id: "",
+        token: "",
+        refreshToken: "",
+    },
+];
+exports.testUser = exports.usersList[0];
 const getLogedInUser = (app) => __awaiter(void 0, void 0, void 0, function* () {
     const username = exports.testUser.username;
     const email = exports.testUser.email;
     const password = exports.testUser.password;
-    let response = yield (0, supertest_1.default)(app).post("/auth/register").send({ "username": username, "email": email, "password": password });
+    let response = yield (0, supertest_1.default)(app)
+        .post("/auth/register")
+        .send({ username: username, email: email, password: password });
     if (response.status !== 201) {
-        response = yield (0, supertest_1.default)(app).post("/auth/login").send({ "email": email, "password": password });
+        response = yield (0, supertest_1.default)(app)
+            .post("/auth/login")
+            .send({ email: email, password: password });
     }
     const logedUser = {
         _id: response.body._id,
@@ -46,7 +93,7 @@ const getLogedInUser = (app) => __awaiter(void 0, void 0, void 0, function* () {
         refreshToken: response.body.refreshToken,
         email: email,
         password: password,
-        username: username
+        username: username,
     };
     return logedUser;
 });
