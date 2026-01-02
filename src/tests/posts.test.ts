@@ -65,12 +65,14 @@ describe("Posts API Tests", () => {
     expect(response.body.content).toBe(updatedPost.content);
   });
 
-//   test("Delete Post", async () => {
-//     const response = await request(app).delete("/posts/" + postId);
-//     expect(response.status).toBe(200);
-//     expect(response.body._id).toBe(postId);
+  test("Delete Post", async () => {
+    const response = await request(app).delete("/posts/" + postId)
+    .set("Authorization", "Bearer " + loggedInUser.token);
+    expect(response.status).toBe(200);
+    expect(response.body._id).toBe(postId);
 
-//     const getResponse = await request(app).get("/posts/" + postId);
-//     expect(getResponse.status).toBe(404);
-//   });
+    const getResponse = await request(app).get("/posts/" + postId)
+    .set("Authorization", "Bearer " + loggedInUser.token);
+    expect(getResponse.status).toBe(404);
+  });
 });
