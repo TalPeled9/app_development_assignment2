@@ -91,7 +91,7 @@ describe("Authentication API Tests", () => {
     testUser.token = refreshResponse.body.token;
     testUser.refreshToken = refreshResponse.body.refreshToken;
 
-    //try to create movie again
+    //try to create post again
     const retryResponse = await request(app)
       .post("/posts")
       .set("Authorization", "Bearer " + testUser.token)

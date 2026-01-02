@@ -100,7 +100,7 @@ describe("Comments API Tests", () => {
     };
     const response = await request(app)
       .put("/comments/" + commentId)
-      // .set("Authorization", "Bearer " + loggedInUser.token)
+      .set("Authorization", "Bearer " + loggedInUser.token)
       .send(updatedComment);
     expect(response.status).toBe(200);
     expect(response.body.content).toBe(updatedComment.content);
@@ -108,12 +108,13 @@ describe("Comments API Tests", () => {
 
   test("Delete Comment", async () => {
     const response = await request(app).delete("/comments/" + commentId)
-    // .set("Authorization", "Bearer " + loggedInUser.token)
+    .set("Authorization", "Bearer " + loggedInUser.token)
     ;
     expect(response.status).toBe(200);
     expect(response.body._id).toBe(commentId);
 
-    const getResponse = await request(app).get("/comments/" + commentId);
+    const getResponse = await request(app).get("/comments/" + commentId)
+    .set("Authorization", "Bearer " + loggedInUser.token);
     expect(getResponse.status).toBe(404);
   });
 });

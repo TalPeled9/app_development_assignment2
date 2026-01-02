@@ -63,11 +63,13 @@ describe("Users API tests", () => {
     expect(response.body.email).toBe(usersList[0].email);
   });
 
-//   test("Delete User", async () => {
-//     const response = await request(app).delete(`/users/${userId}`);
-//     expect(response.status).toBe(200);
+  test("Delete User", async () => {
+    const response = await request(app).delete("/users/" + userId)
+    .set("Authorization", "Bearer " + userToken);
+    expect(response.status).toBe(200);
 
-//     const getResponse = await request(app).get(`/users/${userId}`);
-//     expect(getResponse.status).toBe(404);
-//   });
+    const getResponse = await request(app).get("/users/" + userId)
+    .set("Authorization", "Bearer " + userToken);
+    expect(getResponse.status).toBe(404);
+  });
 });
