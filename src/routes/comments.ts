@@ -145,7 +145,7 @@ router.route('/')
  */
 router.route('/:id')
     .get(commentsController.getCommentById)
-    .put(commentsController.updateCommentById)
-    .delete(commentsController.deleteCommentById);
+    .put(authMiddleware, commentsController.updateCommentById)
+    .delete(authMiddleware, commentsController.deleteCommentById);
 
 export default router;

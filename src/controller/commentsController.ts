@@ -53,10 +53,16 @@ const updateCommentById = async (req: AuthRequest, res: Response) => {
     const id = req.params.id;
     const updateData = req.body;
     try {
-        const updatedComment = await commentsModel.findByIdAndUpdate(id, updateData, { new: true });
-        if (!updatedComment) {
+        const comment = await commentsModel.findById(id);
+        if (!comment) {
             return res.status(404).json("Comment not found");
         }
+
+        if (comment.author.toString() !== req.userId) {
+            return res.status(403).json("Forbidden: You can only update your own comments");
+        }
+
+        const updatedComment = await commentsModel.findByIdAndUpdate(id, updateData, { new: true });
         res.status(200).json(updatedComment);
     } catch (error) {
         console.error(error);
@@ -67,10 +73,16 @@ const updateCommentById = async (req: AuthRequest, res: Response) => {
 const deleteCommentById = async (req: AuthRequest, res: Response) => {
     const id = req.params.id;
     try {
-        const deletedComment = await commentsModel.findByIdAndDelete(id);
-        if (!deletedComment) {
+        const comment = await commentsModel.findById(id);
+        if (!comment) {
             return res.status(404).json("Comment not found");
         }
+
+        if (comment.author.toString() !== req.userId) {
+            return res.status(403).json("Forbidden: You can only delete your own comments");
+        }
+
+        const deletedComment = await commentsModel.findByIdAndDelete(id);
         res.status(200).json(deletedComment);
     } catch (error) {
         console.error(error);

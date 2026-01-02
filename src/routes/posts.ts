@@ -153,7 +153,7 @@ router.route('/')
  */
 router.route('/:id')
     .get(postsController.getPostById)
-    .put(postsController.updatePostById)
-    .delete(postsController.deletePostById);
+    .put(authMiddleware, postsController.updatePostById)
+    .delete(authMiddleware, postsController.deletePostById);
 
 export default router;
