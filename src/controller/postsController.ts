@@ -1,10 +1,20 @@
 import postsModel from "../model/postsModel";
-import { Request, Response } from "express";
+import { Response } from "express";
+import { AuthRequest } from "../middleware/authMiddleware";
 
-const createPost = async (req: Request, res: Response) => {
-    const postData = req.body;
+const createPost = async (req: AuthRequest, res: Response) => {
     try {
-        const newPost = new postsModel(postData);
+        const { title, content } = req.body;
+
+        if (!req.userId) {
+            return res.status(401).json("Unauthorized");
+        }
+
+        const newPost = new postsModel({
+            title,
+            content,
+            sender: req.userId
+        });
         await newPost.save();
         res.status(201).json(newPost);
     } catch (error) {
@@ -13,7 +23,7 @@ const createPost = async (req: Request, res: Response) => {
     }
 };
 
-const getAllPosts = async (req: Request, res: Response) => {
+const getAllPosts = async (req: AuthRequest, res: Response) => {
     const senderRaw = req.query.sender;
     const sender = Array.isArray(senderRaw) ? senderRaw[0] : (typeof senderRaw === 'string' ? senderRaw : undefined);
     try {
@@ -30,7 +40,7 @@ const getAllPosts = async (req: Request, res: Response) => {
     }
 };
 
-const getPostById = async (req: Request, res: Response) => {
+const getPostById = async (req: AuthRequest, res: Response) => {
     const id = req.params.id;
     try {
         const post = await postsModel.findById(id);
@@ -44,7 +54,7 @@ const getPostById = async (req: Request, res: Response) => {
     }
 };
 
-const updatePostById = async (req: Request, res: Response) => {
+const updatePostById = async (req: AuthRequest, res: Response) => {
     const id = req.params.id;
     const updateData = req.body;
     try {
@@ -59,9 +69,24 @@ const updatePostById = async (req: Request, res: Response) => {
     }
 };
 
+const deletePostById = async (req: AuthRequest, res: Response) => {
+    const id = req.params.id;
+    try {
+        const deletedPost = await postsModel.findByIdAndDelete(id);
+        if (!deletedPost) {
+            return res.status(404).json("Post not found");
+        }
+        res.status(200).json(deletedPost);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json("Error deleting post");
+    }
+};
+
 export default {
     createPost,
     getAllPosts,
     getPostById,
-    updatePostById
+    updatePostById,
+    deletePostById
 };

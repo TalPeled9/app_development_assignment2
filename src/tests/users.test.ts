@@ -1,21 +1,23 @@
 import request from "supertest";
 import initApp from "../app";
 import { Express } from "express";
-// import User from "../model/userModel";
+import User from "../model/userModel";
 import { usersList } from "./utils"
 
 let app: Express;
 let userId = "";
+let userToken = "";
 
 beforeAll(async () => {
   app = await initApp();
-  // await User.deleteMany();
+  await User.deleteMany();
 });
 
 afterAll((done) => done());
 
 describe("Users API tests", () => {
   test("Create User", async () => {
+    let index = 0;
     for (const user of usersList) {
       const response = await request(app).post("/auth/register").send({
         "username": user.username,
@@ -28,6 +30,10 @@ describe("Users API tests", () => {
     expect(response.body).toHaveProperty("refreshToken");
     expect(response.body.username).toBe(user.username);
     expect(response.body.email).toBe(user.email);
+    if (index === 0) {
+      userToken = response.body.token;
+    }
+    index++;
     }
   });
 
@@ -50,6 +56,7 @@ describe("Users API tests", () => {
     usersList[0].username = "updated-username";
     usersList[0].email = "updated-email@example.com";
     const response = await request(app).put("/users/" + userId)
+    .set("Authorization", "Bearer " + userToken)
     .send(usersList[0]);
     expect(response.status).toBe(200);
     expect(response.body.username).toBe(usersList[0].username);
