@@ -7,7 +7,6 @@ import { usersList, UserData, getLogedInUser } from "./utils";
 let app: Express;
 let loggedInUser: UserData;
 let userId = "";
-let userToken = "";
 
 beforeAll(async () => {
   app = await initApp();
