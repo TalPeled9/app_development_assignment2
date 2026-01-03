@@ -2,7 +2,7 @@ import request from "supertest";
 import initApp from "../app";
 import { Express } from "express";
 import User from "../model/userModel";
-import { testUser, postsList } from "./utils"
+import { testUser, postsList } from "./utils";
 
 let app: Express;
 
@@ -22,13 +22,37 @@ describe("Authentication API Tests", () => {
     expect(response.status).toBe(401);
   });
 
-    test("Test Registration", async () => {
+  test("Registering without required fields fails", async () => {
+    const email = "test@example.com";
+    const username = "testuser";
+    const password = "password123";
+
+    // Test without username
+    const response1 = await request(app)
+      .post("/auth/register")
+      .send({ email: email, password: password });
+    expect(response1.status).toBe(400);
+
+    // Test without email
+    const response2 = await request(app)
+      .post("/auth/register")
+      .send({ username: username, password: password });
+    expect(response2.status).toBe(400);
+
+    // Test without password
+    const response3 = await request(app)
+      .post("/auth/register")
+      .send({ email: email, username: username });
+    expect(response3.status).toBe(400);
+  });
+
+  test("Succesful Registration", async () => {
     const username = testUser.username;
     const email = testUser.email;
     const password = testUser.password;
-    const response = await request(app).post("/auth/register").send(
-      { "username": username, "email": email, "password": password }
-    );
+    const response = await request(app)
+      .post("/auth/register")
+      .send({ username: username, email: email, password: password });
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty("token");
     testUser.token = response.body.token;
@@ -36,6 +60,24 @@ describe("Authentication API Tests", () => {
     expect(response.body).toHaveProperty("refreshToken");
     testUser.refreshToken = response.body.refreshToken;
     testUser._id = response.body._id;
+  });
+
+  test("Registering with duplicate email or username fails", async () => {
+    const password = testUser.password;
+
+    // Test with same email but different username
+    const response1 = await request(app)
+      .post("/auth/register")
+      .send({ username: "newuser", email: testUser.email, password: password });
+    expect(response1.status).toBe(400);
+
+    // Test with same username but different email
+    const response2 = await request(app).post("/auth/register").send({
+      username: testUser.username,
+      email: "newemail@example.com",
+      password: password,
+    });
+    expect(response2.status).toBe(400);
   });
 
   test("Posting a post with token succeeds", async () => {
@@ -57,12 +99,46 @@ describe("Authentication API Tests", () => {
     expect(response.status).toBe(401);
   });
 
-  test("Test Login", async () => {
+  test("Login without required fields fails", async () => {
     const email = testUser.email;
     const password = testUser.password;
-    const response = await request(app).post("/auth/login").send(
-      { "email": email, "password": password }
-    );
+
+    // Test without email
+    const response1 = await request(app)
+      .post("/auth/login")
+      .send({ password: password });
+    expect(response1.status).toBe(400);
+
+    // Test without password
+    const response2 = await request(app)
+      .post("/auth/login")
+      .send({ email: email });
+    expect(response2.status).toBe(400);
+  });
+
+  test("Login with wrong credentials fails", async () => {
+    const email = testUser.email;
+    const password = testUser.password;
+
+    // Test with wrong email
+    const response1 = await request(app)
+      .post("/auth/login")
+      .send({ email: "wrongemail@example.com", password: password });
+    expect(response1.status).toBe(401);
+
+    // Test with wrong password
+    const response2 = await request(app)
+      .post("/auth/login")
+      .send({ email: email, password: "wrongpassword" });
+    expect(response2.status).toBe(401);
+  });
+
+  test("Succesful Login", async () => {
+    const email = testUser.email;
+    const password = testUser.password;
+    const response = await request(app)
+      .post("/auth/login")
+      .send({ email: email, password: password });
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty("token");
     expect(response.body).toHaveProperty("refreshToken");
@@ -83,9 +159,9 @@ describe("Authentication API Tests", () => {
     expect(response.status).toBe(401);
 
     //refresh the token
-    const refreshResponse = await request(app).post("/auth/refresh").send(
-      { "refreshToken": testUser.refreshToken }
-    );
+    const refreshResponse = await request(app)
+      .post("/auth/refresh")
+      .send({ refreshToken: testUser.refreshToken });
     expect(refreshResponse.status).toBe(200);
     expect(refreshResponse.body).toHaveProperty("token");
     testUser.token = refreshResponse.body.token;
@@ -102,23 +178,23 @@ describe("Authentication API Tests", () => {
   //test double use of refresh token fails
   test("Test double use of refresh token fails", async () => {
     //use the current refresh token to get a new token
-    const refreshResponse1 = await request(app).post("/auth/refresh").send(
-      { "refreshToken": testUser.refreshToken }
-    );
+    const refreshResponse1 = await request(app)
+      .post("/auth/refresh")
+      .send({ refreshToken: testUser.refreshToken });
     expect(refreshResponse1.status).toBe(200);
     expect(refreshResponse1.body).toHaveProperty("token");
     const newRefreshToken = refreshResponse1.body.refreshToken;
 
     //try to use the same refresh token again
-    const refreshResponse2 = await request(app).post("/auth/refresh").send(
-      { "refreshToken": testUser.refreshToken }
-    );
+    const refreshResponse2 = await request(app)
+      .post("/auth/refresh")
+      .send({ refreshToken: testUser.refreshToken });
     expect(refreshResponse2.status).toBe(401);
 
     //try to use the new refresh token also fails
-    const refreshResponse3 = await request(app).post("/auth/refresh").send(
-      { "refreshToken": newRefreshToken }
-    );
+    const refreshResponse3 = await request(app)
+      .post("/auth/refresh")
+      .send({ refreshToken: newRefreshToken });
     expect(refreshResponse3.status).toBe(401);
   });
 
@@ -127,23 +203,28 @@ describe("Authentication API Tests", () => {
     const newUser = {
       username: "logoutTestUser",
       email: "logout@test.com",
-      password: "password123"
+      password: "password123",
     };
-    const registerResponse = await request(app).post("/auth/register").send(newUser);
+    const registerResponse = await request(app)
+      .post("/auth/register")
+      .send(newUser);
     expect(registerResponse.status).toBe(201);
     const refreshToken = registerResponse.body.refreshToken;
 
     // Logout with the refresh token
-    const logoutResponse = await request(app).post("/auth/logout").send(
-      { "refreshToken": refreshToken }
-    );
+    const logoutResponse = await request(app)
+      .post("/auth/logout")
+      .send({ refreshToken: refreshToken });
     expect(logoutResponse.status).toBe(200);
-    expect(logoutResponse.body).toHaveProperty("message", "Logged out successfully");
+    expect(logoutResponse.body).toHaveProperty(
+      "message",
+      "Logged out successfully"
+    );
 
     // Try to use the refresh token after logout - should fail
-    const refreshResponse = await request(app).post("/auth/refresh").send(
-      { "refreshToken": refreshToken }
-    );
+    const refreshResponse = await request(app)
+      .post("/auth/refresh")
+      .send({ refreshToken: refreshToken });
     expect(refreshResponse.status).toBe(401);
   });
 });
