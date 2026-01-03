@@ -2,11 +2,12 @@ import request from "supertest";
 import initApp from "../app";
 import postsModel from "../model/postsModel";
 import { Express } from "express";
-import { postsList, UserData, getLogedInUser } from "./utils";
+import { postsList, UserData, getLogedInUser, ensureOtherUserPost } from "./utils";
 
 let app: Express;
 let postId = "";
-let loggedInUser : UserData;
+let loggedInUser: UserData;
+let otherUserPostId = "";
 
 beforeAll(async () => {
   app = await initApp();
@@ -27,13 +28,20 @@ describe("Posts API Tests", () => {
 
   test("Create Post", async () => {
     for (const post of postsList) {
-      const response = await request(app).post("/posts")
-      .set("Authorization", "Bearer " + loggedInUser.token)
-      .send(post);
+      const response = await request(app)
+        .post("/posts")
+        .set("Authorization", "Bearer " + loggedInUser.token)
+        .send(post);
       expect(response.status).toBe(201);
       expect(response.body.title).toBe(post.title);
       expect(response.body.content).toBe(post.content);
     }
+  });
+
+  test("Create Post Unauthorized Fails", async () => {
+    const post = postsList[0];
+    const response = await request(app).post("/posts").send(post);
+    expect(response.status).toBe(401);
   });
 
   test("Get All Posts", async () => {
@@ -41,6 +49,14 @@ describe("Posts API Tests", () => {
     expect(response.status).toBe(200);
     expect(response.body.length).toBe(postsList.length);
     postId = response.body[0]._id; // Save the ID of the first post for later tests
+  });
+
+  test("Get Posts by Sender", async () => {
+    const response = await request(app).get(
+      "/posts?sender=" + loggedInUser._id
+    );
+    expect(response.status).toBe(200);
+    expect(response.body.length).toBe(postsList.length);
   });
 
   test("Get Post by ID", async () => {
@@ -54,7 +70,7 @@ describe("Posts API Tests", () => {
   test("Update Post", async () => {
     const updatedPost = {
       title: "Updated Title",
-      content: "Updated Content"
+      content: "Updated Content",
     };
     const response = await request(app)
       .put("/posts/" + postId)
@@ -65,14 +81,69 @@ describe("Posts API Tests", () => {
     expect(response.body.content).toBe(updatedPost.content);
   });
 
+  test("Update Non-Existent Post", async () => {
+    const updatedPost = {
+      title: "Non-Existent Update",
+      content: "This should fail",
+    };
+    const response = await request(app)
+      .put("/posts/" + "000000000000000000000000")
+      .set("Authorization", "Bearer " + loggedInUser.token)
+      .send(updatedPost);
+    expect(response.status).toBe(404);
+  });
+
+  test("Unauthorized Update Post", async () => {
+    const updatedPost = {
+      title: "Unauthorized Update",
+      content: "This should fail",
+    };
+    const response = await request(app)
+      .put("/posts/" + postId)
+      .send(updatedPost);
+    expect(response.status).toBe(401);
+  });
+
+  test("Update another user's post is forbidden", async () => {
+    otherUserPostId = await ensureOtherUserPost(app);
+    const response = await request(app)
+      .put("/posts/" + otherUserPostId)
+      .set("Authorization", "Bearer " + loggedInUser.token)
+      .send({ title: "Hack", content: "Should fail" });
+    expect(response.status).toBe(403);
+  });
+
   test("Delete Post", async () => {
-    const response = await request(app).delete("/posts/" + postId)
-    .set("Authorization", "Bearer " + loggedInUser.token);
+    const response = await request(app)
+      .delete("/posts/" + postId)
+      .set("Authorization", "Bearer " + loggedInUser.token);
     expect(response.status).toBe(200);
     expect(response.body._id).toBe(postId);
 
-    const getResponse = await request(app).get("/posts/" + postId)
-    .set("Authorization", "Bearer " + loggedInUser.token);
+    const getResponse = await request(app)
+      .get("/posts/" + postId)
+      .set("Authorization", "Bearer " + loggedInUser.token);
     expect(getResponse.status).toBe(404);
+  });
+
+  test("Unauthorized Delete Post", async () => {
+    const response = await request(app).delete("/posts/" + postId);
+    expect(response.status).toBe(401);
+  });
+
+  test("Delete Non-Existent Post", async () => {
+    const response = await request(app)
+      .delete("/posts/" + "000000000000000000000000")
+      .set("Authorization", "Bearer " + loggedInUser.token);
+    expect(response.status).toBe(404);
+  });
+
+  test("Delete another user's post is forbidden", async () => {
+    otherUserPostId = await ensureOtherUserPost(app);
+    const response = await request(app)
+      .delete("/posts/" + otherUserPostId)
+      .set("Authorization", "Bearer " + loggedInUser.token);
+
+    expect(response.status).toBe(403);
   });
 });
