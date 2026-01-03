@@ -58,10 +58,16 @@ const updatePostById = async (req: AuthRequest, res: Response) => {
     const id = req.params.id;
     const updateData = req.body;
     try {
-        const updatedPost = await postsModel.findByIdAndUpdate(id, updateData, { new: true });
-        if (!updatedPost) {
+        const post = await postsModel.findById(id);
+        if (!post) {
             return res.status(404).json("Post not found");
         }
+
+        if (post.sender.toString() !== req.userId) {
+            return res.status(403).json("Forbidden: You can only update your own posts");
+        }
+
+        const updatedPost = await postsModel.findByIdAndUpdate(id, updateData, { new: true });
         res.status(200).json(updatedPost);
     } catch (error) {
         console.error(error);
@@ -72,10 +78,16 @@ const updatePostById = async (req: AuthRequest, res: Response) => {
 const deletePostById = async (req: AuthRequest, res: Response) => {
     const id = req.params.id;
     try {
-        const deletedPost = await postsModel.findByIdAndDelete(id);
-        if (!deletedPost) {
+        const post = await postsModel.findById(id);
+        if (!post) {
             return res.status(404).json("Post not found");
         }
+
+        if (post.sender.toString() !== req.userId) {
+            return res.status(403).json("Forbidden: You can only delete your own posts");
+        }
+
+        const deletedPost = await postsModel.findByIdAndDelete(id);
         res.status(200).json(deletedPost);
     } catch (error) {
         console.error(error);
