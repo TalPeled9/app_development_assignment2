@@ -2,12 +2,11 @@ import request from "supertest";
 import initApp from "../app";
 import { Express } from "express";
 import User from "../model/userModel";
-import { usersList, UserData, getLogedInUser } from "./utils";
+import { usersList, UserData, getLogedInUser, nonexistentUser } from "./utils";
 
 let app: Express;
 let loggedInUser: UserData;
 let userId = "";
-let userToken = "";
 
 beforeAll(async () => {
   app = await initApp();
@@ -18,7 +17,6 @@ afterAll((done) => done());
 
 describe("Users API tests", () => {
   test("Create User", async () => {
-    let index = 0;
     for (const user of usersList) {
       const response = await request(app).post("/auth/register").send({
         username: user.username,
@@ -31,10 +29,6 @@ describe("Users API tests", () => {
       expect(response.body).toHaveProperty("refreshToken");
       expect(response.body.username).toBe(user.username);
       expect(response.body.email).toBe(user.email);
-      if (index === 0) {
-        userToken = response.body.token;
-      }
-      index++;
     }
   });
 
@@ -42,7 +36,7 @@ describe("Users API tests", () => {
     const response = await request(app).get("/users");
     expect(response.status).toBe(200);
     expect(response.body.length).toBe(usersList.length);
-    userId = response.body[0]._id; // Save the ID of the first user for later tests
+    userId = response.body[0]._id;
   });
 
   test("Get User by ID", async () => {
@@ -76,15 +70,15 @@ describe("Users API tests", () => {
 
   test("Update Non-Existent User Fails", async () => {
     const response = await request(app)
-      .put("/users/000000000000000000000000")
+      .put("/users/" + nonexistentUser._id)
       .set("Authorization", "Bearer " + loggedInUser.token)
-      .send({ username: "nonexistent", email: "nonexistent@example.com" });
+      .send({ username: nonexistentUser.username, email: nonexistentUser.email });
     expect(response.status).toBe(404);
   });
 
   test("Delete Non-Existent User Fails", async () => {
     const response = await request(app)
-      .delete("/users/000000000000000000000000")
+      .delete("/users/" + nonexistentUser._id)
       .set("Authorization", "Bearer " + loggedInUser.token);
     expect(response.status).toBe(404);
   });

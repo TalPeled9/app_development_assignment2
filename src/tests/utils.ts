@@ -20,7 +20,7 @@ export const postsList: PostsData[] = [
   {
     title: "Third Post",
     content: "This is the content of the third post.",
-    },
+  },
 ];
 
 export type CommentsData = {
@@ -81,6 +81,15 @@ export const usersList: UserData[] = [
 
 export const testUser: UserData = usersList[0];
 
+export const anotherUser: UserData = usersList[1];
+
+export const nonexistentUser: UserData = {
+  username: "nonexistent",
+  email: "nonexistent@example.com",
+  password: "nonexistentpass",
+  _id: "000000000000000000000000",
+};
+
 export const getLogedInUser = async (app: Express): Promise<UserData> => {
   const username = testUser.username;
   const email = testUser.email;
@@ -111,7 +120,9 @@ export const ensureOtherUserPost = async (app: Express): Promise<string> => {
 
   let auth = await request(app).post("/auth/register").send(usersList[1]);
   if (auth.status !== 201) {
-    auth = await request(app).post("/auth/login").send({ email: usersList[1].email, password: usersList[1].password });
+    auth = await request(app)
+      .post("/auth/login")
+      .send({ email: usersList[1].email, password: usersList[1].password });
   }
   const otherToken = auth.body.token;
   const createOther = await request(app)
