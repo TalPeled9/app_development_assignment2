@@ -74,6 +74,14 @@ describe("Comments API Tests", () => {
     commentId = response.body[0]._id; // Save the ID of the first comment for later tests
   });
 
+  test("Get Comments by Non-existent Post ID returns empty", async () => {
+    const response = await request(app).get(
+      "/comments" + "?postId=" + nonexistentid
+    );
+    expect(response.status).toBe(200);
+    expect(response.body.length).toBe(0);
+  });
+
   test("Get Comment by ID", async () => {
     const response = await request(app).get("/comments/" + commentId);
     expect(response.status).toBe(200);
@@ -81,6 +89,11 @@ describe("Comments API Tests", () => {
     expect(response.body.author).toBe(loggedInUser._id);
     expect(response.body.content).toBe(commentsList[0].content);
     expect(response.body._id).toBe(commentId);
+  });
+
+  test("Get Non-existent Comment by ID fails", async () => {
+    const response = await request(app).get("/comments/" + nonexistentid);
+    expect(response.status).toBe(404);
   });
 
   test("Update Comment Unauthorized fails", async () => {
