@@ -14,14 +14,31 @@ export const postsList: PostsData[] = [
     content: "This is the content of the first post.",
   },
   {
-    title: "Second Post",
-    content: "This is the content of the second post.",
+    title: "Other User Post",
+    content: "This post is created by another user.",
   },
   {
     title: "Third Post",
     content: "This is the content of the third post.",
   },
 ];
+
+export const createOtherUserPost = async (app: Express): Promise<PostsData> => {
+  let auth = await request(app).post("/auth/register").send(anotherUser);
+  if (auth.status !== 201) {
+    auth = await request(app)
+      .post("/auth/login")
+      .send({ email: anotherUser.email, password: anotherUser.password });
+  }
+  const otherToken = auth.body.token;
+
+  const response = await request(app)
+    .post("/posts")
+    .set("Authorization", "Bearer " + otherToken)
+    .send(postsList[1]);
+  postsList[1]._id = response.body._id;
+  return postsList[1];
+};
 
 export type CommentsData = {
   content: string;
@@ -113,22 +130,4 @@ export const getLogedInUser = async (app: Express): Promise<UserData> => {
   return logedUser;
 };
 
-let otherUserPostIdCache = "";
 
-export const ensureOtherUserPost = async (app: Express): Promise<string> => {
-  if (otherUserPostIdCache) return otherUserPostIdCache;
-
-  let auth = await request(app).post("/auth/register").send(usersList[1]);
-  if (auth.status !== 201) {
-    auth = await request(app)
-      .post("/auth/login")
-      .send({ email: usersList[1].email, password: usersList[1].password });
-  }
-  const otherToken = auth.body.token;
-  const createOther = await request(app)
-    .post("/posts")
-    .set("Authorization", "Bearer " + otherToken)
-    .send({ title: "Other Post", content: "Owned by other user" });
-  otherUserPostIdCache = createOther.body._id;
-  return otherUserPostIdCache;
-};

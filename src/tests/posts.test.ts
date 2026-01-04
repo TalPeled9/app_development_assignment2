@@ -2,12 +2,12 @@ import request from "supertest";
 import initApp from "../app";
 import postsModel from "../model/postsModel";
 import { Express } from "express";
-import { postsList, UserData, getLogedInUser, ensureOtherUserPost } from "./utils";
+import {postsList, UserData, PostsData, getLogedInUser, createOtherUserPost} from "./utils";
 
 let app: Express;
 let postId = "";
 let loggedInUser: UserData;
-let otherUserPostId = "";
+let otherUserPost: PostsData;
 
 beforeAll(async () => {
   app = await initApp();
@@ -26,8 +26,20 @@ describe("Posts API Tests", () => {
     expect(response.body).toEqual([]);
   });
 
+  test("Create Post Unauthorized Fails", async () => {
+    const post = postsList[0];
+    const response = await request(app).post("/posts").send(post);
+    expect(response.status).toBe(401);
+  });
+
   test("Create Post", async () => {
+    let index = 0;
     for (const post of postsList) {
+      if (index === 1) {
+        otherUserPost = await createOtherUserPost(app);
+        index++;
+        continue;
+      }
       const response = await request(app)
         .post("/posts")
         .set("Authorization", "Bearer " + loggedInUser.token)
@@ -35,13 +47,8 @@ describe("Posts API Tests", () => {
       expect(response.status).toBe(201);
       expect(response.body.title).toBe(post.title);
       expect(response.body.content).toBe(post.content);
+      index++;
     }
-  });
-
-  test("Create Post Unauthorized Fails", async () => {
-    const post = postsList[0];
-    const response = await request(app).post("/posts").send(post);
-    expect(response.status).toBe(401);
   });
 
   test("Get All Posts", async () => {
@@ -51,20 +58,20 @@ describe("Posts API Tests", () => {
     postId = response.body[0]._id; // Save the ID of the first post for later tests
   });
 
-  test("Get Posts by Sender", async () => {
-    const response = await request(app).get(
-      "/posts?sender=" + loggedInUser._id
-    );
-    expect(response.status).toBe(200);
-    expect(response.body.length).toBe(postsList.length);
-  });
-
   test("Get Post by ID", async () => {
     const response = await request(app).get("/posts/" + postId);
     expect(response.status).toBe(200);
     expect(response.body.title).toBe(postsList[0].title);
     expect(response.body.content).toBe(postsList[0].content);
     expect(response.body._id).toBe(postId);
+  });
+
+  test("Get Posts by Sender", async () => {
+    const response = await request(app).get(
+      "/posts?sender=" + loggedInUser._id
+    );
+    expect(response.status).toBe(200);
+    expect(response.body.length).toBe(postsList.length - 1);
   });
 
   test("Update Post", async () => {
@@ -105,9 +112,8 @@ describe("Posts API Tests", () => {
   });
 
   test("Update another user's post is forbidden", async () => {
-    otherUserPostId = await ensureOtherUserPost(app);
     const response = await request(app)
-      .put("/posts/" + otherUserPostId)
+      .put("/posts/" + otherUserPost._id)
       .set("Authorization", "Bearer " + loggedInUser.token)
       .send({ title: "Hack", content: "Should fail" });
     expect(response.status).toBe(403);
@@ -139,9 +145,8 @@ describe("Posts API Tests", () => {
   });
 
   test("Delete another user's post is forbidden", async () => {
-    otherUserPostId = await ensureOtherUserPost(app);
     const response = await request(app)
-      .delete("/posts/" + otherUserPostId)
+      .delete("/posts/" + otherUserPost._id)
       .set("Authorization", "Bearer " + loggedInUser.token);
 
     expect(response.status).toBe(403);
