@@ -24,27 +24,21 @@ export const postsList: PostsData[] = [
 ];
 
 export type CommentsData = {
-  postId: string;
-  author: string;
   content: string;
+  postId?: string;
+  author?: string;
   createdAt?: Date;
   _id?: string;
 };
 
 export const commentsList: CommentsData[] = [
   {
-    postId: "000000000000000000000001",
-    author: "commenter1",
     content: "This is the first comment.",
   },
   {
-    postId: "000000000000000000000001",
-    author: "commenter2",
     content: "This is the second comment.",
   },
   {
-    postId: "000000000000000000000002",
-    author: "commenter3",
     content: "This is the third comment.",
   },
 ];
