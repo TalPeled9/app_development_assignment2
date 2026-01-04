@@ -16,6 +16,11 @@ beforeAll(async () => {
 afterAll((done) => done());
 
 describe("Users API tests", () => {
+  test("Get Current User fails", async () => {
+    const response = await request(app).get("/users/me");
+    expect(response.status).toBe(401);
+  });
+  
   test("Create User", async () => {
     for (const user of usersList) {
       const response = await request(app).post("/auth/register").send({
