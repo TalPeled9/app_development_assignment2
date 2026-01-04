@@ -2,20 +2,29 @@ import request from "supertest";
 import initApp from "../app";
 import commentsModel from "../model/commentsModel";
 import postsModel from "../model/postsModel";
+import userModel from "../model/userModel";
 import { Express } from "express";
-import { UserData, getLogedInUser, postsList, commentsList } from "./utils";
+import {
+  UserData,
+  getLogedInUser,
+  anotherUser,
+  postsList,
+  nonexistentPost,
+  commentsList,
+  nonexistentComment,
+} from "./utils";
 
 let app: Express;
-let commentId = "";
 let loggedInUser: UserData;
+let commentId = "";
 let postId1 = "";
 let postId2 = "";
-let nonexistentid = "000000000000000000000999";
 
 beforeAll(async () => {
   app = await initApp();
   await commentsModel.deleteMany();
   await postsModel.deleteMany();
+  await userModel.deleteMany();
   loggedInUser = await getLogedInUser(app);
 
   const post1Response = await request(app)
@@ -29,6 +38,13 @@ beforeAll(async () => {
     .set("Authorization", "Bearer " + loggedInUser.token)
     .send(postsList[1]);
   postId2 = post2Response.body._id;
+
+  commentsList[0].postId = postId1;
+  commentsList[1].postId = postId1;
+  commentsList[2].postId = postId2;
+
+  const response = await request(app).post("/auth/register").send(anotherUser);
+  anotherUser.token = response.body.token;
 });
 
 afterAll((done) => {
@@ -42,10 +58,12 @@ describe("Comments API Tests", () => {
     expect(response.body).toEqual([]);
   });
 
+  test("Create Comment Unauthorized fails", async () => {
+    const response = await request(app).post("/comments").send(commentsList[0]);
+    expect(response.status).toBe(401);
+  });
+
   test("Create Comment", async () => {
-    commentsList[0].postId = postId1;
-    commentsList[1].postId = postId1;
-    commentsList[2].postId = postId2;
     for (const comment of commentsList) {
       const response = await request(app)
         .post("/comments")
@@ -58,13 +76,12 @@ describe("Comments API Tests", () => {
     }
   });
 
-  test("Create Comment Unauthorized fails", async () => {
-    const comment = {
-      postId: postId1,
-      content: "Unauthorized comment",
-    };
-    const response = await request(app).post("/comments").send(comment);
-    expect(response.status).toBe(401);
+  test("Get Comments by Non-existent Post ID returns empty", async () => {
+    const response = await request(app).get(
+      "/comments" + "?postId=" + nonexistentPost._id
+    );
+    expect(response.status).toBe(200);
+    expect(response.body.length).toBe(0);
   });
 
   test("Get Comment by Post ID", async () => {
@@ -74,12 +91,11 @@ describe("Comments API Tests", () => {
     commentId = response.body[0]._id; // Save the ID of the first comment for later tests
   });
 
-  test("Get Comments by Non-existent Post ID returns empty", async () => {
+  test("Get Non-existent Comment by ID fails", async () => {
     const response = await request(app).get(
-      "/comments" + "?postId=" + nonexistentid
+      "/comments/" + nonexistentComment._id
     );
-    expect(response.status).toBe(200);
-    expect(response.body.length).toBe(0);
+    expect(response.status).toBe(404);
   });
 
   test("Get Comment by ID", async () => {
@@ -91,30 +107,27 @@ describe("Comments API Tests", () => {
     expect(response.body._id).toBe(commentId);
   });
 
-  test("Get Non-existent Comment by ID fails", async () => {
-    const response = await request(app).get("/comments/" + nonexistentid);
-    expect(response.status).toBe(404);
-  });
-
   test("Update Comment Unauthorized fails", async () => {
-    const updatedComment = {
-      content: "Malicious Update",
-    };
     const response = await request(app)
       .put("/comments/" + commentId)
-      .send(updatedComment);
+      .send({ content: "Unauthorized Update" });
     expect(response.status).toBe(401);
   });
 
   test("Update Non-existent Comment fails", async () => {
-    const updatedComment = {
-      content: "Update Non-existent",
-    };
     const response = await request(app)
-      .put("/comments/" + nonexistentid)
+      .put("/comments/" + nonexistentComment._id)
       .set("Authorization", "Bearer " + loggedInUser.token)
-      .send(updatedComment);
+      .send({ content: "Update Non-existent" });
     expect(response.status).toBe(404);
+  });
+
+  test("Update another User's Comment fails", async () => {
+    const updateResponse = await request(app)
+      .put("/comments/" + commentId)
+      .set("Authorization", "Bearer " + anotherUser.token)
+      .send({ content: "Unauthorized Update by Another User" });
+    expect(updateResponse.status).toBe(403);
   });
 
   test("Update Comment", async () => {
@@ -142,9 +155,16 @@ describe("Comments API Tests", () => {
 
   test("Delete Non-existent Comment fails", async () => {
     const response = await request(app)
-      .delete("/comments/" + nonexistentid)
+      .delete("/comments/" + nonexistentComment._id)
       .set("Authorization", "Bearer " + loggedInUser.token);
     expect(response.status).toBe(404);
+  });
+
+  test("Delete another User's Comment fails", async () => {
+    const deleteResponse = await request(app)
+      .delete("/comments/" + commentId)
+      .set("Authorization", "Bearer " + anotherUser.token);
+    expect(deleteResponse.status).toBe(403);
   });
 
   test("Delete Comment", async () => {

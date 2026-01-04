@@ -1,65 +1,6 @@
 import request from "supertest";
 import { Express } from "express";
 
-export type PostsData = {
-  title: string;
-  content: string;
-  sender?: string;
-  _id?: string;
-};
-
-export const postsList: PostsData[] = [
-  {
-    title: "First Post",
-    content: "This is the content of the first post.",
-  },
-  {
-    title: "Other User Post",
-    content: "This post is created by another user.",
-  },
-  {
-    title: "Third Post",
-    content: "This is the content of the third post.",
-  },
-];
-
-export const createOtherUserPost = async (app: Express): Promise<PostsData> => {
-  let auth = await request(app).post("/auth/register").send(anotherUser);
-  if (auth.status !== 201) {
-    auth = await request(app)
-      .post("/auth/login")
-      .send({ email: anotherUser.email, password: anotherUser.password });
-  }
-  const otherToken = auth.body.token;
-
-  const response = await request(app)
-    .post("/posts")
-    .set("Authorization", "Bearer " + otherToken)
-    .send(postsList[1]);
-  postsList[1]._id = response.body._id;
-  return postsList[1];
-};
-
-export type CommentsData = {
-  content: string;
-  postId?: string;
-  author?: string;
-  createdAt?: Date;
-  _id?: string;
-};
-
-export const commentsList: CommentsData[] = [
-  {
-    content: "This is the first comment.",
-  },
-  {
-    content: "This is the second comment.",
-  },
-  {
-    content: "This is the third comment.",
-  },
-];
-
 export type UserData = {
   username: string;
   email: string;
@@ -129,5 +70,77 @@ export const getLogedInUser = async (app: Express): Promise<UserData> => {
   };
   return logedUser;
 };
+
+export type PostsData = {
+  title: string;
+  content: string;
+  sender?: string;
+  _id?: string;
+};
+
+export const postsList: PostsData[] = [
+  {
+    title: "First Post",
+    content: "This is the content of the first post.",
+  },
+  {
+    title: "Other User Post",
+    content: "This post is created by another user.",
+  },
+  {
+    title: "Third Post",
+    content: "This is the content of the third post.",
+  },
+];
+
+export const nonexistentPost: PostsData = {
+  title: "Nonexistent Post",
+  content: "This post does not exist.",
+  _id: "000000000000000000000000",
+};
+
+export const createOtherUserPost = async (app: Express): Promise<PostsData> => {
+  let auth = await request(app).post("/auth/register").send(anotherUser);
+  if (auth.status !== 201) {
+    auth = await request(app)
+      .post("/auth/login")
+      .send({ email: anotherUser.email, password: anotherUser.password });
+  }
+  const otherToken = auth.body.token;
+
+  const response = await request(app)
+    .post("/posts")
+    .set("Authorization", "Bearer " + otherToken)
+    .send(postsList[1]);
+  postsList[1]._id = response.body._id;
+  return postsList[1];
+};
+
+export type CommentsData = {
+  content: string;
+  postId?: string;
+  author?: string;
+  createdAt?: Date;
+  _id?: string;
+};
+
+export const commentsList: CommentsData[] = [
+  {
+    content: "This is the first comment.",
+  },
+  {
+    content: "This is the second comment.",
+  },
+  {
+    content: "This is the third comment.",
+  },
+];
+
+export const nonexistentComment: CommentsData = {
+  content: "This comment does not exist.",
+  _id: "000000000000000000000000",
+};
+
+
 
 
